@@ -1,4 +1,4 @@
-from module.tools import has_emotion_word
+from my_module.tools import has_emotion_word
 from transformers import BertJapaneseTokenizer
 model_name = 'cl-tohoku/bert-base-japanese-whole-word-masking'
 with open('data_src/w_senti_vocab.txt', 'r') as f:

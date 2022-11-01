@@ -10,12 +10,12 @@ def has_emotion_word(tokens, emotion_word_list):
     return False
 
 # 取得したバッチからデータセットを生成
-def get_dataset_from_batch(batch, last_hidden_state):
+def get_dataset_from_batch(batch, last_hidden_state, file):
     model_name = 'cl-tohoku/bert-base-japanese-whole-word-masking'
     tokenizer = BertJapaneseTokenizer.from_pretrained(model_name)
     emotion_word_dict = get_emotion_word_dict()
     batch_num = len(batch['input_ids'])
-    print("batch_num: ", batch_num)
+    # print("batch_num: ", batch_num)
     for i in range(batch_num):
         # input_ids には1文のid列が格納されている。
         tokens = tokenizer.convert_ids_to_tokens(batch['input_ids'][i])
@@ -27,7 +27,12 @@ def get_dataset_from_batch(batch, last_hidden_state):
         if len(tokens) != len(last_hidden_state[i]):
             print("error")
             continue
-        emotion_word_idx = get_emotion_word_idx(tokens)
+        emotion_word_idx_list = get_emotion_word_idx(tokens)
+        for emotion_word_idx in emotion_word_idx_list:
+            emotion_vector = emotion_word_dict[tokens[emotion_word_idx]]
+            # print("{} : {}".format(tokens[emotion_word_idx], emotion_vector))
+            file.write("{}\t{}\n".format(last_hidden_state[i][emotion_word_idx], emotion_vector))
+
 
 # tokensから感性語のインデックスのリストを返す。
 def get_emotion_word_idx(tokens):
@@ -38,7 +43,7 @@ def get_emotion_word_idx(tokens):
             if token == emotion_word:
                 idx_list.append(idx)
                 break
-    print('idx_list:', idx_list)
+    # print('idx_list:', idx_list)
     return idx_list
 
 

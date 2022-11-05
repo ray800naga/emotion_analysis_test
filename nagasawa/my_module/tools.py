@@ -1,4 +1,5 @@
 from transformers import BertJapaneseTokenizer, BertModel
+from torch.utils.data import Dataset
 
 # bertでトークナイズされたトークン列のなかに感性語が含まれているか否かを確認
 def has_emotion_word(tokens, emotion_word_list):
@@ -60,3 +61,8 @@ def get_emotion_word_dict():
 
 if __name__ == '__main__':
     get_emotion_word_dict()
+
+# BERT_to_emotionのデータセットからリストを取得
+class BertToEmotionDataset(Dataset):
+    def __init__(self):
+        # txtデータの読み出し

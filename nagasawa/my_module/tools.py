@@ -117,6 +117,33 @@ class BertToEmoFileDataset(Dataset):
         output_vec = torch.tensor(output_vec)
         return input_vec, output_vec
 
+# BERT特徴量と感情ベクトルのデータセットを取得(ファイルまるごと一気に読み込み)
+class BertToEmoDirectDataset(Dataset):
+    def __init__(self, dirname):
+        with open(dirname, 'r') as f:
+            input_vec_list = []
+            output_vec_list = []
+            for line in f:
+                data = line[:-1].split('\t')
+                input_vec = data[0][1:-1].split(', ')
+                input_vec = list(map(float, input_vec))
+                output_vec = data[1][1:-1].split(', ')
+                output_vec = list(map(float, output_vec))
+                input_vec = torch.tensor(input_vec)
+                input_vec_list.append(input_vec)
+                output_vec = torch.tensor(output_vec)
+                output_vec_list.append(output_vec)
+        self.input_vec_list = input_vec_list
+        self.output_vec_list = output_vec_list
+
+    def __len__(self):
+        return len(self.input_vec_list)
+
+    def __getitem__(self, idx):
+        return self.input_vec_list[idx], self.output_vec_list[idx]
+
+
+
 # lossの平均値を算出(val, testのloss計算用)
 def calc_loss(net, data_loader, criterion, device):
     with torch.no_grad():

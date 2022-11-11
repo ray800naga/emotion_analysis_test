@@ -8,58 +8,32 @@ from tqdm import tqdm
 import pickle
 
 # %%
-# Trainデータセットの準備
+# データセットの準備
 # データセットが存在するディレクトリを指定
 
 #ファイル分割バージョン(省メモリ設計)
-# dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/only_emotion/train/split/"
-# train_dataset = BertToEmoFileDataset(dataset_root_dir)
-
-#一気に読み込みバージョン(TESLA用)
-# dataset_dir = "/workspace/dataset/data_src/BERT_to_emotion/only_emotion/train/BERT_to_emo_train.txt"
-# train_dataset = BertToEmoDirectDataset(dataset_dir)
-
-# valデータセットの準備
-
-# ファイル分割バージョン
-# dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/only_emotion/val/split/"
-# val_dataset = BertToEmoFileDataset(dataset_root_dir)
-
-# 一気に読み込みバージョン
-# dataset_dir = "/workspace/dataset/data_src/BERT_to_emotion/only_emotion/val/BERT_to_emo_val.txt"
-# val_dataset = BertToEmoDirectDataset(dataset_dir)
-
-# testデータセットの準備
-
-# ファイル分割バージョン
-# dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/only_emotion/test/split/"
-# test_dataset = BertToEmoFileDataset(dataset_root_dir)
-
-# 一気に読み込みバージョン
-# dataset_dir = "/workspace/dataset/data_src/BERT_to_emotion/only_emotion/test/BERT_to_emo_test.txt"
-# test_dataset = BertToEmoDirectDataset(dataset_dir)
-
-# %%
-# Datasetを外部に保存
-# dataset_list = [train_dataset, val_dataset, test_dataset]
-# with open('dataset_list_window0.bin', 'wb') as f:
-# 	pickle.dump(dataset_list, f)
+dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/only_emotion/train/split/"
+train_dataset = BertToEmoFileDataset(dataset_root_dir)
+dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/only_emotion/val/split/"
+val_dataset = BertToEmoFileDataset(dataset_root_dir)
+dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/only_emotion/test/split/"
+test_dataset = BertToEmoFileDataset(dataset_root_dir)
 
 # %%
 # Pickle化したデータセットを読み込み
-with open("/workspace/dataset/data_src/BERT_to_emotion/only_emotion/dataset_list_window0.bin", 'rb') as p:
-	dataset_list = pickle.load(p)
-train_dataset = dataset_list[0]
-val_dataset = dataset_list[1]
-test_dataset = dataset_list[2]
+# with open("/workspace/dataset/data_src/BERT_to_emotion/only_emotion/dataset_list_window0.bin", 'rb') as p:
+# 	dataset_list = pickle.load(p)
+# train_dataset = dataset_list[0]
+# val_dataset = dataset_list[1]
+# test_dataset = dataset_list[2]
 
 # %%
 # ハイパーパラメータ
-batch_size = 16384
+batch_size = 512
 max_epoch = 10000
 
 # 設定
-num_workers = 0
+num_workers = 20
 
 # %%
 class Net(nn.Module):
@@ -80,7 +54,7 @@ class Net(nn.Module):
         x = self.fc2(x)
         # x = F.relu(x)
         # x = self.fc3(x)
-        x = F.softmax(x)
+        x = F.softmax(x, dim=1)
         return x
 
 

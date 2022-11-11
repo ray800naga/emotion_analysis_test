@@ -36,7 +36,7 @@ max_epoch = 10000
 # 設定
 num_workers = 20
 date = str(datetime.datetime.today().date())
-description = "test"
+description = "700->500->300->100dim"
 model_path = "./{}_{}.pth".format(date, description)
 print(model_path)
 
@@ -47,18 +47,23 @@ class Net(nn.Module):
         super(Net, self).__init__()
 
         self.bn = nn.BatchNorm1d(768)
-        self.fc1 = nn.Linear(768, 400)
-        self.fc2 = nn.Linear(400, 10)
-        # self.fc2 = nn.Linear(400, 100)
-        # self.fc3 = nn.Linear(100, 10)
+        self.fc1 = nn.Linear(768, 700)
+        self.fc2 = nn.Linear(700, 500)
+        self.fc3 = nn.Linear(500, 300)
+        self.fc4 = nn.Linear(300, 100)
+        self.fc5 = nn.Linear(100, 10)
 
     def forward(self, x):
         x = self.bn(x)
         x = self.fc1(x)
         x = F.relu(x)
         x = self.fc2(x)
-        # x = F.relu(x)
-        # x = self.fc3(x)
+        x = F.relu(x)
+        x = self.fc3(x)
+        x = F.relu(x)
+        x = self.fc4(x)
+        x = F.relu(x)
+        x = self.fc5(x)
         x = F.softmax(x, dim=1)
         return x
 
@@ -88,7 +93,7 @@ test_dataloader = DataLoader(test_dataset, batch_size = batch_size, num_workers=
 
 # %%
 # early stopping
-earlystopping  = EarlyStopping(patience=5, verbose=True)
+earlystopping  = EarlyStopping(patience=5, verbose=True, path=model_path)
 
 # %%
 # ネットワークの学習

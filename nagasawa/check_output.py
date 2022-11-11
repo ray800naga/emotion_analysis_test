@@ -21,12 +21,12 @@ class Net(nn.Module):
         x = self.fc1(x)
         x = F.relu(x)
         x = self.fc2(x)
-        x = F.softmax(x)
+        x = F.softmax(x, dim=1)
         # x = F.relu(x)
         # x = self.fc3(x)
         return x
 
-model_weight_path = "./model/20221109_400dim.pth"
+model_weight_path = "./checkpoint_model.pth"
 net = Net()
 net.load_state_dict(torch.load(model_weight_path))
 

@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from my_module.tools import BertToEmoFileDataset, BertToEmoDirectDataset, calc_loss, EarlyStopping
 from tqdm import tqdm
 import pickle
+import datetime
 
 # %%
 # データセットの準備
@@ -34,6 +35,10 @@ max_epoch = 10000
 
 # 設定
 num_workers = 20
+date = str(datetime.datetime.today().date())
+description = "test"
+model_path = "./{}_{}.pth".format(date, description)
+print(model_path)
 
 # %%
 class Net(nn.Module):

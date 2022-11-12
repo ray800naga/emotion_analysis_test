@@ -36,8 +36,8 @@ max_epoch = 10000
 # 設定
 num_workers = 20
 date = str(datetime.datetime.today().date())
-description = "700->500->300->100dim"
-model_path = "./{}_{}.pth".format(date, description)
+description = "400dim_sigmoid_BCE"
+model_path = "/workspace/dataset/data/model/{}_{}.pth".format(date, description)
 print(model_path)
 
 # %%
@@ -47,24 +47,21 @@ class Net(nn.Module):
         super(Net, self).__init__()
 
         self.bn = nn.BatchNorm1d(768)
-        self.fc1 = nn.Linear(768, 700)
-        self.fc2 = nn.Linear(700, 500)
-        self.fc3 = nn.Linear(500, 300)
-        self.fc4 = nn.Linear(300, 100)
-        self.fc5 = nn.Linear(100, 10)
+        self.fc1 = nn.Linear(768, 400)
+        self.fc2 = nn.Linear(400, 10)
 
     def forward(self, x):
         x = self.bn(x)
         x = self.fc1(x)
         x = F.relu(x)
         x = self.fc2(x)
-        x = F.relu(x)
-        x = self.fc3(x)
-        x = F.relu(x)
-        x = self.fc4(x)
-        x = F.relu(x)
-        x = self.fc5(x)
-        x = F.softmax(x, dim=1)
+        # x = F.relu(x)
+        # x = self.fc3(x)
+        # x = F.relu(x)
+        # x = self.fc4(x)
+        # x = F.relu(x)
+        # x = self.fc5(x)
+        x = torch.sigmoid(x)
         return x
 
 
@@ -80,7 +77,7 @@ torch.manual_seed(0)
 net = Net().to(device)
 
 # 損失関数の選択
-criterion = nn.CrossEntropyLoss()
+criterion = nn.BCELoss()
 
 # 最適化手法の選択
 optimizer = torch.optim.Adam(net.parameters())

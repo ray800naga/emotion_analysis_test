@@ -5,27 +5,45 @@ import os
 import statistics
 from tqdm import tqdm
 import numpy as np
+from MeCab import Tagger
+import ipadic
 
-# bertでトークナイズされたトークン列のなかに感性語が含まれているか否かを確認
-def has_emotion_word(tokens, emotion_word_list):
+# MeCabで形態素解析され、原型に戻されたリストのなかに感性語が含まれているか否かを確認
+def has_emotion_word(genkei_list, emotion_word_list):
     for emo_w in emotion_word_list:
-        for token in tokens:
-            if emo_w == token:
-                print(emo_w) # for debug
+        for genkei in genkei_list:
+            if emo_w == genkei:
+                # print(emo_w) # for debug
                 return True
     return False
 
+# textから原型のリストを取得
+def get_genkei_list(text, tagger):
+    tagger_list = tagger.parse(text).split("\n")
+    del tagger_list[-2:]
+    genkei_list = []
+    # print(line) # for debug
+    for i in tagger_list:
+        i = i.split("\t")
+        i += i[1].split(",")
+        del i[1]
+        genkei_list.append(i[7])
+    return genkei_list
+
 # 取得したバッチからデータセットを生成
-def get_dataset_from_batch(batch, last_hidden_state, file_count, batch_count, output_name_head):
+def get_dataset_from_batch(encoding_list, text_list, last_hidden_state, file_count, batch_count, output_name_head):
     model_name = 'cl-tohoku/bert-base-japanese-whole-word-masking'
     tokenizer = BertJapaneseTokenizer.from_pretrained(model_name)
+    tagger = Tagger(ipadic.MECAB_ARGS)
     emotion_word_dict = get_emotion_word_dict()
-    batch_len = len(batch['input_ids'])
+    batch_len = len(encoding_list['input_ids'])
     # print("batch_num: ", batch_num)
-    with open(output_name_head + "{:0>4}_{:0>4}.txt".format(file_count, batch_count), 'w') as f:
+    with open(output_name_head + "{:0>8}_{:0>8}.txt".format(file_count, batch_count), 'w') as f:
         for i in range(batch_len):
             # input_ids には1文のid列が格納されている。
-            tokens = tokenizer.convert_ids_to_tokens(batch['input_ids'][i])
+            tokens = tokenizer.convert_ids_to_tokens(encoding_list['input_ids'][i])
+            text = text_list[i]
+            taggers = tagger.parse(text).split("\n")
             del tokens[0]   # [CLS]を削除
             del last_hidden_state[i][0]    # [CLS]に対応する出力も削除
             sep_idx = tokens.index('[SEP]') # [SEP]のindexを取得
@@ -34,7 +52,8 @@ def get_dataset_from_batch(batch, last_hidden_state, file_count, batch_count, ou
             if len(tokens) != len(last_hidden_state[i]):
                 print("error")
                 continue
-            emotion_word_idx_list = get_emotion_word_idx(tokens)
+            # 感性語のtoken indexを取得
+            emotion_word_idx_list = get_emotion_word_idx(tokens, taggers)
             for emotion_word_idx in emotion_word_idx_list:
                 emotion_vector = emotion_word_dict[tokens[emotion_word_idx]]
                 # print("{} : {}".format(tokens[emotion_word_idx], emotion_vector))
@@ -42,16 +61,16 @@ def get_dataset_from_batch(batch, last_hidden_state, file_count, batch_count, ou
     
 
 # tokensから感性語のインデックスのリストを返す。
-def get_emotion_word_idx(tokens):
-    idx_list = []
+def get_emotion_word_idx(tokens, taggers):
+    emo_token_idx_list = []
     emotion_word_dict = get_emotion_word_dict()
     for idx, token in enumerate(tokens):
         for emotion_word in emotion_word_dict.keys():
             if token == emotion_word:
-                idx_list.append(idx)
+                emo_token_idx_list.append(idx)
                 break
-    # print('idx_list:', idx_list)
-    return idx_list
+    # print('emo_token_idx_list:', emo_token_idx_list)
+    return emo_token_idx_list
 
 
 
@@ -92,10 +111,12 @@ class TokenListFileDataset(Dataset):
 
     def __getitem__(self, idx):
         encoding_list = []
+        text_list = []
         with open(self.filenames[idx], 'r') as f:
             for line in f:
                 encoding_list.append(get_token_list(self.tokenizer, line))
-        return encoding_list
+                text_list.append(line)
+        return encoding_list, text_list
 
 # BERT特徴量と感情ベクトルのデータセットを取得(多量データ対応のため、ファイル分割対応→1ファイル1文)
 class BertToEmoFileDataset(Dataset):

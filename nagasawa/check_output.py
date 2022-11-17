@@ -31,7 +31,7 @@ class Net(nn.Module):
         x = torch.sigmoid(x)
         return x
 
-model_weight_path = "/workspace/dataset/data/model/2022-11-12_400dim_sigmoid_BCE.pth"
+model_weight_path = "/workspace/dataset/data/model/2022-11-16_400dim_sigmoid_BCE.pth"
 net = Net()
 net.load_state_dict(torch.load(model_weight_path))
 

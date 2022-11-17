@@ -30,13 +30,13 @@ test_dataset = BertToEmoFileDataset(dataset_root_dir)
 
 # %%
 # ハイパーパラメータ
-batch_size = 512
+batch_size = 1024
 max_epoch = 10000
 
 # 設定
-num_workers = 20
+num_workers = 12
 date = str(datetime.datetime.today().date())
-description = "400dim_sigmoid_BCE"
+description = "batchnorm_400dim_sigmoid_BCE"
 model_path = "/workspace/dataset/data/model/{}_{}.pth".format(date, description)
 print(model_path)
 

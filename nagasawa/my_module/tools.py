@@ -8,6 +8,10 @@ import numpy as np
 from MeCab import Tagger
 import ipadic
 
+NON_STOP_WORD = ['動詞', '名詞', '形容詞', '形容動詞']
+STOP_JOUKEN = ['代名詞', '接尾', '非自立', '数']
+STOP_WORD = ['する', 'いる', 'ある', 'なる', 'ない', 'できる', 'おり', '行う', 'ば', 'ら']
+
 # MeCabで形態素解析され、原型に戻されたリストのなかに感性語が含まれているか否かを確認
 def has_emotion_word(genkei_list, emotion_word_list):
     for emo_w in emotion_word_list:
@@ -31,7 +35,7 @@ def get_genkei_list(text, tagger):
     return genkei_list
 
 # 取得したバッチからデータセットを生成
-def get_dataset_from_batch(encoding_list, text_list, last_hidden_state, file_count, batch_count, output_name_head):
+def get_dataset_from_batch(encoding_list, last_hidden_state, file_count, batch_count, output_name_head):
     model_name = 'cl-tohoku/bert-base-japanese-whole-word-masking'
     tokenizer = BertJapaneseTokenizer.from_pretrained(model_name)
     tagger = Tagger(ipadic.MECAB_ARGS)
@@ -42,35 +46,58 @@ def get_dataset_from_batch(encoding_list, text_list, last_hidden_state, file_cou
         for i in range(batch_len):
             # input_ids には1文のid列が格納されている。
             tokens = tokenizer.convert_ids_to_tokens(encoding_list['input_ids'][i])
-            text = text_list[i]
-            taggers = tagger.parse(text).split("\n")
+            # taggers = tagger.parse(text).split("\n")
             del tokens[0]   # [CLS]を削除
             del last_hidden_state[i][0]    # [CLS]に対応する出力も削除
             sep_idx = tokens.index('[SEP]') # [SEP]のindexを取得
             del tokens[sep_idx:]    # [SEP]以降を削除
             del last_hidden_state[i][sep_idx:] # 対応する出力も削除
+            # tokenとbertからの出力で次元数に違いがあればエラーとし、処理をとばす。
             if len(tokens) != len(last_hidden_state[i]):
                 print("error")
                 continue
-            # 感性語のtoken indexを取得
-            emotion_word_idx_list = get_emotion_word_idx(tokens, taggers)
+            # サブワード化されたtokenを集約し、単語単位に変換
+            token_idx_list_with_no_subword = concat_subwords(tokens)
+            # print("no_subword: ", token_idx_list_with_no_subword)
+            # ウィンドウカウント対象単語に絞り込み
+            tokens_idx_list_for_window = get_list_for_window_size_consideration(tokens, token_idx_list_with_no_subword, tagger)
+            # print("window_idx_list", tokens_idx_list_for_window)
+            # 感性語のtoken indexを取得 返り値はtokens_idx_list_for_windowでのindex
+            emotion_word_idx_list = get_emotion_word_idx(tokens, tokens_idx_list_for_window, tagger)
             for emotion_word_idx in emotion_word_idx_list:
-                emotion_vector = emotion_word_dict[tokens[emotion_word_idx]]
-                # print("{} : {}".format(tokens[emotion_word_idx], emotion_vector))
-                f.write("{}\t{}\n".format(last_hidden_state[i][emotion_word_idx], emotion_vector))
+                emotion_word = get_word_from_subwords(tokens, tokens_idx_list_for_window[emotion_word_idx])
+                emotion_word_genkei = get_genkei(emotion_word, tagger)
+                emotion_vector = emotion_word_dict[emotion_word_genkei]
+                for j in tokens_idx_list_for_window[emotion_word_idx]:
+                    # print("{} : {}".format(tokens[j], emotion_vector))
+                    f.write("{}\t{}\n".format(last_hidden_state[i][j], emotion_vector))
     
 
 # tokensから感性語のインデックスのリストを返す。
-def get_emotion_word_idx(tokens, taggers):
+def get_emotion_word_idx(tokens, tokens_dix_list_for_window, tagger):
     emo_token_idx_list = []
     emotion_word_dict = get_emotion_word_dict()
-    for idx, token in enumerate(tokens):
+    for outer_idx, token_idx_list in enumerate(tokens_dix_list_for_window):
+        word = get_word_from_subwords(tokens, token_idx_list)
+        genkei = get_genkei(word, tagger)
         for emotion_word in emotion_word_dict.keys():
-            if token == emotion_word:
-                emo_token_idx_list.append(idx)
+            if genkei == emotion_word:
+                emo_token_idx_list.append(outer_idx)
                 break
     # print('emo_token_idx_list:', emo_token_idx_list)
     return emo_token_idx_list
+
+# 単語の原型を取得
+def get_genkei(word, tagger):
+    genkei = tagger.parse(word).split('\n')[0].split('\t')[1].split(',')[6]
+    return genkei
+
+# サブワードを連結したidリストを元に、##を取り除いて連結した単語の文字列を取得
+def get_word_from_subwords(tokens, token_idx_list):
+    word = tokens[token_idx_list[0]]
+    for i in range(1, len(token_idx_list)):
+        word = word + tokens[token_idx_list[i]][2:]
+    return word
 
 
 
@@ -95,9 +122,9 @@ def get_token_list(tokenizer, text):
     encoding = { k: torch.tensor(v) for k, v in encoding.items() }
     return encoding
 
-# token のidをtaggerの区切り単位で分割
+# tokensのサブワード化を解消
 def concat_subwords(tokens):
-    tokens_idx_list_in_tagger_unit = []
+    tokens_idx_list_no_subword = []
     tokens_in_one_tagger = []
     token_idx = 0
     # print(len(tokens)) # for debug
@@ -106,7 +133,7 @@ def concat_subwords(tokens):
         # print("added_token_idx(main): ", token_idx)
         token_idx += 1
         if token_idx == len(tokens):
-            tokens_idx_list_in_tagger_unit.append(tokens_in_one_tagger)
+            tokens_idx_list_no_subword.append(tokens_in_one_tagger)
             break
         while "##" in tokens[token_idx]:
             tokens_in_one_tagger.append(token_idx)
@@ -114,21 +141,27 @@ def concat_subwords(tokens):
             token_idx += 1
             if token_idx == len(tokens):
                 break
-        tokens_idx_list_in_tagger_unit.append(tokens_in_one_tagger)
+        tokens_idx_list_no_subword.append(tokens_in_one_tagger)
         tokens_in_one_tagger = []
-    return tokens_idx_list_in_tagger_unit
+    return tokens_idx_list_no_subword
 
-# tagger単位で区切ったtokenリストの中から、考慮対象の品詞のものだけを抽出
-def get_list_for_window_size_consideration(tokens, tokens_idx_list_in_tagger_unit, tagger):
+# サブワードを連結したtokenリストの中から、考慮対象の品詞のものだけを抽出
+def get_list_for_window_size_consideration(tokens, tokens_idx_list_no_subword, tagger):
     tokens_idx_list_for_window_consideration = []
-    for token_idxs in tokens_idx_list_in_tagger_unit:
-        word = token_idxs[0]
-        for i in range(1, len(token_idxs)):
-            word = word + tokens[token_idxs][i][2:]
-        tagger.parse(word).split('\t')[1].split(',')
-        # test
+    for token_idxs in tokens_idx_list_no_subword:
+        word = get_word_from_subwords(tokens, token_idxs)
+        # print(word) # for debug
+        # 1単語に対し、分かち書きで複数に別れた場合は除外
+        if len(tagger.parse(word).split('\n')) != 3:
+            continue
+        tagger_list = tagger.parse(word).split('\n')[0].split('\t')[1].split(',')
+        hinshi = tagger_list[0]
+        jouken = tagger_list[1]
+        genkei = tagger_list[6]
+        if (hinshi in NON_STOP_WORD) and (jouken not in STOP_JOUKEN) and (genkei not in STOP_WORD):
+            tokens_idx_list_for_window_consideration.append(token_idxs)
+    return tokens_idx_list_for_window_consideration
         
-
 # # BERT_to_emotionのデータセットからリストを取得
 # class BertToEmotionDataset(Dataset):
 #     def __init__(self):
@@ -145,12 +178,10 @@ class TokenListFileDataset(Dataset):
 
     def __getitem__(self, idx):
         encoding_list = []
-        text_list = []
         with open(self.filenames[idx], 'r') as f:
             for line in f:
                 encoding_list.append(get_token_list(self.tokenizer, line))
-                text_list.append(line)
-        return encoding_list, text_list
+        return encoding_list
 
 # BERT特徴量と感情ベクトルのデータセットを取得(多量データ対応のため、ファイル分割対応→1ファイル1文)
 class BertToEmoFileDataset(Dataset):

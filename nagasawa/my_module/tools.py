@@ -95,6 +95,40 @@ def get_token_list(tokenizer, text):
     encoding = { k: torch.tensor(v) for k, v in encoding.items() }
     return encoding
 
+# token のidをtaggerの区切り単位で分割
+def concat_subwords(tokens):
+    tokens_idx_list_in_tagger_unit = []
+    tokens_in_one_tagger = []
+    token_idx = 0
+    # print(len(tokens)) # for debug
+    while token_idx < len(tokens):
+        tokens_in_one_tagger.append(token_idx)
+        # print("added_token_idx(main): ", token_idx)
+        token_idx += 1
+        if token_idx == len(tokens):
+            tokens_idx_list_in_tagger_unit.append(tokens_in_one_tagger)
+            break
+        while "##" in tokens[token_idx]:
+            tokens_in_one_tagger.append(token_idx)
+            # print("added_token_idx(sub): ", token_idx)
+            token_idx += 1
+            if token_idx == len(tokens):
+                break
+        tokens_idx_list_in_tagger_unit.append(tokens_in_one_tagger)
+        tokens_in_one_tagger = []
+    return tokens_idx_list_in_tagger_unit
+
+# tagger単位で区切ったtokenリストの中から、考慮対象の品詞のものだけを抽出
+def get_list_for_window_size_consideration(tokens, tokens_idx_list_in_tagger_unit, tagger):
+    tokens_idx_list_for_window_consideration = []
+    for token_idxs in tokens_idx_list_in_tagger_unit:
+        word = token_idxs[0]
+        for i in range(1, len(token_idxs)):
+            word = word + tokens[token_idxs][i][2:]
+        tagger.parse(word).split('\t')[1].split(',')
+        # test
+        
+
 # # BERT_to_emotionのデータセットからリストを取得
 # class BertToEmotionDataset(Dataset):
 #     def __init__(self):

@@ -30,7 +30,7 @@ test_dataset = BertToEmoFileDataset(dataset_root_dir)
 
 # %%
 # ハイパーパラメータ
-batch_size = 1024
+batch_size = 4096
 max_epoch = 10000
 
 # 設定

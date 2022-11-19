@@ -9,6 +9,10 @@ from tqdm import tqdm
 model_name = 'cl-tohoku/bert-base-japanese-whole-word-masking'
 tokenizer = BertJapaneseTokenizer.from_pretrained(model_name)
 
+# 設定
+mode = 'val'
+window_size = 3
+
 # %%
 # text_listに格納
 # with open('data_src/wiki40b_with_emotion/wiki_40b_train_with_emotion.txt', 'r') as f_read:
@@ -23,7 +27,7 @@ from torch.utils.data import DataLoader
 from my_module.tools import TokenListFileDataset
 # 文章の符号化
 
-text_file_dir = "/workspace/dataset/data_src/wiki40b_with_emotion/val/wakati/split/"
+text_file_dir = "/workspace/dataset/data_src/wiki40b_with_emotion/{}/wakati/split/".format(mode)
 file_dataset = TokenListFileDataset(text_file_dir, tokenizer)
 
 # dataset_for_loader = []
@@ -43,7 +47,7 @@ file_dataset = TokenListFileDataset(text_file_dir, tokenizer)
 
 # %%
 # FileDataLoader生成
-file_loader = DataLoader(file_dataset, num_workers=2)
+file_loader = DataLoader(file_dataset)
 
 # %%
 # DataLoader動作確認
@@ -62,9 +66,9 @@ from concurrent.futures import ProcessPoolExecutor
 count = 0
 with torch.no_grad():
     # データセット出力先を指定
-    output_name_head = '/workspace/dataset/data_src/BERT_to_emotion/only_emotion/val/wakati/split/BERT_to_emo_val_'
+    output_name_head = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/{1}/split/BERT_to_emo_{1}_'.format(window_size, mode)
     file_count = 1
-    with ProcessPoolExecutor(max_workers=2) as executor:
+    with ProcessPoolExecutor(max_workers=20) as executor:
         for file in file_loader:
             print("file_count: {} / {}".format(file_count, file_loader.__len__()))
             batch_loader = DataLoader(file, batch_size=128)
@@ -78,7 +82,7 @@ with torch.no_grad():
                 last_hidden_state = last_hidden_state.cpu().numpy().tolist()
                 batch = {k: v.cpu().numpy().tolist() for k, v in batch.items()}
                 # executor.submit(get_dataset_from_batch, batch, last_hidden_state, file_count, batch_count, output_name_head)
-                get_dataset_from_batch(batch, last_hidden_state, file_count, batch_count, output_name_head)
+                get_dataset_from_batch(batch, last_hidden_state, file_count, batch_count, output_name_head, window_size)
                 batch_count += 1
             file_count += 1
 print('done!')

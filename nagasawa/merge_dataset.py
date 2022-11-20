@@ -2,10 +2,10 @@
 import os
 from tqdm import tqdm
 
-window_size = 0
-mode = "test"
+window_size = 3
+mode = "val"
 
-output_root_dirname = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/{}/wakati/".format(window_size, mode)
+output_root_dirname = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/{}/".format(window_size, mode)
 output_file_name = "BERT_to_emo_{}.txt".format(mode)
 input_root_dirname = output_root_dirname + "split/"
 

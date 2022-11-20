@@ -31,7 +31,7 @@ class Net(nn.Module):
         x = torch.sigmoid(x)
         return x
 
-model_weight_path = "/workspace/dataset/data/model/2022-11-16_400dim_sigmoid_BCE.pth"
+model_weight_path = "/workspace/dataset/data/model/2022-11-20_batchnorm_400dim_sigmoid_MSE_window_settings_size_0.pth"
 net = Net()
 net.load_state_dict(torch.load(model_weight_path))
 
@@ -48,7 +48,7 @@ bert = bert.to(device)
 net = net.to(device)
 
 # input_sentence = input("文章を入力：")
-input_sentence = "彼は嬉し涙を流した。"
+input_sentence = "大切なものをなくしてしまい、悲しい気持ちになった。"
 encoding = get_token_list(tokenizer, input_sentence)
 encoding = {k: v.unsqueeze(dim=0).to(device) for k, v in encoding.items()}
 

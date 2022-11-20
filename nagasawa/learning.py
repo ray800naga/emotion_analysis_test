@@ -12,17 +12,20 @@ import datetime
 # データセットの準備
 # データセットが存在するディレクトリを指定
 
+# window_sizeを設定
+window_size = 0
+
 #ファイル分割バージョン(省メモリ設計)
-dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/only_emotion/train/split/"
+dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/split_one_line/train/".format(window_size)
 train_dataset = BertToEmoFileDataset(dataset_root_dir)
-dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/only_emotion/val/split/"
+dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/split_one_line/val/".format(window_size)
 val_dataset = BertToEmoFileDataset(dataset_root_dir)
-dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/only_emotion/test/split/"
+dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/split_one_line/test/".format(window_size)
 test_dataset = BertToEmoFileDataset(dataset_root_dir)
 
 # %%
 # Pickle化したデータセットを読み込み
-# with open("/workspace/dataset/data_src/BERT_to_emotion/only_emotion/dataset_list_window0.bin", 'rb') as p:
+# with open("/workspace/dataset/data_src/BERT_to_emotion/windows_size_{}/dataset_list_window0.bin", 'rb') as p:
 # 	dataset_list = pickle.load(p)
 # train_dataset = dataset_list[0]
 # val_dataset = dataset_list[1]
@@ -34,9 +37,9 @@ batch_size = 4096
 max_epoch = 10000
 
 # 設定
-num_workers = 12
+num_workers = 20
 date = str(datetime.datetime.today().date())
-description = "batchnorm_400dim_sigmoid_BCE"
+description = "batchnorm_400dim_sigmoid_MSE_window_settings_size_0"
 model_path = "/workspace/dataset/data/model/{}_{}.pth".format(date, description)
 print(model_path)
 
@@ -77,7 +80,8 @@ torch.manual_seed(0)
 net = Net().to(device)
 
 # 損失関数の選択
-criterion = nn.BCELoss()
+# criterion = nn.BCELoss()	# binary cross entropy
+criterion = nn.MSELoss()	# mean square loss
 
 # 最適化手法の選択
 optimizer = torch.optim.Adam(net.parameters())

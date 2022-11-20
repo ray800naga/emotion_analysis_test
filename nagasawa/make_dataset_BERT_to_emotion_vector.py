@@ -11,7 +11,7 @@ tokenizer = BertJapaneseTokenizer.from_pretrained(model_name)
 
 # 設定
 mode = 'test'
-window_size = 3
+window_size = 0
 
 # %%
 # text_listに格納
@@ -66,7 +66,7 @@ from concurrent.futures import ProcessPoolExecutor
 count = 0
 with torch.no_grad():
     # データセット出力先を指定
-    output_name_head = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/{1}/split/BERT_to_emo_{1}_'.format(window_size, mode)
+    output_name_head = '/workspace/dataset/data_src/BERT_to_emo_tmp/window_size_{0}/{1}/split/BERT_to_emo_{1}_'.format(window_size, mode)
     file_count = 1
     with ProcessPoolExecutor(max_workers=6) as executor:
         for file in file_loader:

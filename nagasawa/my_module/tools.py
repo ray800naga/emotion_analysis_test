@@ -1,5 +1,5 @@
 from transformers import BertJapaneseTokenizer, BertModel
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 import torch
 import os
 import statistics
@@ -216,16 +216,28 @@ class BertToEmoFileDataset(Dataset):
         return len(self.filenames)
 
     def __getitem__(self, idx):
+        input_vec_list = []
+        output_vec_list = []
         with open(self.filenames[idx], 'r') as f:
-            line = f.readline()
-        data = line[:-1].split('\t')
-        input_vec = data[0][1:-1].split(', ')
-        input_vec = list(map(float, input_vec))
-        output_vec = data[1][1:-1].split(', ')
-        output_vec = list(map(float, output_vec))
-        input_vec = torch.tensor(input_vec)
-        output_vec = torch.tensor(output_vec)
-        return input_vec, output_vec
+            for line in f:
+                # 最後の改行文字を落として、タブ文字で分割
+                data = line[:-1].split('\t')
+                # 入力値の処理(768dim)
+                # 大かっこを落として、「, 」で分割
+                input_vec = data[0][1:-1].split(', ')
+                # floatに変換
+                input_vec = list(map(float, input_vec))
+                # 出力地の処理(10dim)
+                # 大かっこを落として、「, 」で分割
+                output_vec = data[1][1:-1].split(', ')
+                # floatに変換
+                output_vec = list(map(float, output_vec))
+                # リストに格納
+                input_vec_list.append(input_vec)
+                output_vec_list.append(output_vec)
+        input_vec_list = torch.tensor(input_vec_list)
+        output_vec_list = torch.tensor(output_vec_list)
+        return input_vec_list, output_vec_list
 
 # BERT特徴量と感情ベクトルのデータセットを取得(ファイルまるごと一気に読み込み)
 class BertToEmoDirectDataset(Dataset):
@@ -255,15 +267,16 @@ class BertToEmoDirectDataset(Dataset):
 
 
 # lossの平均値を算出(val, testのloss計算用)
-def calc_loss(net, data_loader, criterion, device):
+def calc_loss(net, file_loader, criterion, device):
     with torch.no_grad():
         loss_list = []
-        for batch in tqdm(data_loader):
+        for batch in tqdm(file_loader):
             x, t = batch
+            x = x.squeeze().to(device)
+            t = t.squeeze().to(device)
             x = x.to(device)
             t = t.to(device)
             y = net(x)
-
             loss = criterion(y, t)
             loss_list.append(loss)
         avg_loss = torch.tensor(loss_list).mean()

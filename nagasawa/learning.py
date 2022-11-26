@@ -84,7 +84,7 @@ net = Net().to(device)
 criterion = nn.MSELoss()	# mean square loss
 
 # 最適化手法の選択
-optimizer = torch.optim.Adam(net.parameters())
+optimizer = torch.optim.Adam(net.parameters(), lr=1e-2) # default: lr=1e-3
 
 # %%
 # FileDataloader

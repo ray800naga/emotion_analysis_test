@@ -130,7 +130,7 @@ for epoch in range(max_epoch):
         break
 
 # %%
-best_net = Net()
+best_net = Net().to(device)
 best_net.load_state_dict(torch.load(model_path))
 test_loss_avg = calc_loss(best_net, test_file_loader, criterion, device)
 print("test_loss: {}".format(test_loss_avg))

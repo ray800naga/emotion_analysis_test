@@ -18,8 +18,8 @@ class Net(nn.Module):
         self.fc2 = nn.Linear(400, 10)
 
     def forward(self, x):
-        x = self.bn(x)
         x = self.fc1(x)
+        x = self.bn(x)
         x = F.relu(x)
         x = self.fc2(x)
         # x = F.relu(x)
@@ -31,7 +31,7 @@ class Net(nn.Module):
         x = torch.sigmoid(x)
         return x
 
-model_weight_path = "/workspace/dataset/data/model/2022-11-20_batchnorm_400dim_sigmoid_MSE_window_settings_size_0.pth"
+model_weight_path = "/workspace/dataset/data/model/2022-11-25_batchnorm_400dim_MSE_window_3.pth"
 net = Net()
 net.load_state_dict(torch.load(model_weight_path))
 
@@ -48,7 +48,7 @@ bert = bert.to(device)
 net = net.to(device)
 
 # input_sentence = input("文章を入力：")
-input_sentence = "大切なものをなくしてしまい、悲しい気持ちになった。"
+input_sentence = "道の真ん中で転んでしまい、恥ずかしかった。"
 encoding = get_token_list(tokenizer, input_sentence)
 encoding = {k: v.unsqueeze(dim=0).to(device) for k, v in encoding.items()}
 

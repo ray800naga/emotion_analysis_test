@@ -37,9 +37,9 @@ batch_size = 1
 max_epoch = 10000
 
 # 設定
-num_workers = 6
+num_workers = 12
 date = str(datetime.datetime.today().date())
-description = "batchnorm_400dim_MSE_window_3"
+description = "batchnorm_400dim_MSE_window_3_bn_change"
 model_path = "/workspace/dataset/data/model/{}_{}.pth".format(date, description)
 print(model_path)
 
@@ -49,13 +49,13 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
 
-        self.bn = nn.BatchNorm1d(768)
+        self.bn = nn.BatchNorm1d(400)
         self.fc1 = nn.Linear(768, 400)
         self.fc2 = nn.Linear(400, 10)
 
     def forward(self, x):
-        x = self.bn(x)
         x = self.fc1(x)
+        x = self.bn(x)
         x = F.relu(x)
         x = self.fc2(x)
         # x = F.relu(x)
@@ -84,7 +84,7 @@ net = Net().to(device)
 criterion = nn.MSELoss()	# mean square loss
 
 # 最適化手法の選択
-optimizer = torch.optim.Adam(net.parameters(), lr=1e-2) # default: lr=1e-3
+optimizer = torch.optim.Adam(net.parameters()) # default: lr=1e-3
 
 # %%
 # FileDataloader

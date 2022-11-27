@@ -37,9 +37,9 @@ batch_size = 1
 max_epoch = 10000
 
 # 設定
-num_workers = 12
+num_workers = 24
 date = str(datetime.datetime.today().date())
-description = "batchnorm_400dim_MSE_window_3_bn_change"
+description = "batchnorm_400dim_BCE_window_3_leaky_relu"
 model_path = "/workspace/dataset/data/model/{}_{}.pth".format(date, description)
 print(model_path)
 
@@ -56,7 +56,8 @@ class Net(nn.Module):
     def forward(self, x):
         x = self.fc1(x)
         x = self.bn(x)
-        x = F.relu(x)
+        # x = F.relu(x)
+        x = F.leaky_relu(x)
         x = self.fc2(x)
         # x = F.relu(x)
         # x = self.fc3(x)
@@ -80,8 +81,8 @@ torch.manual_seed(0)
 net = Net().to(device)
 
 # 損失関数の選択
-# criterion = nn.BCELoss()	# binary cross entropy
-criterion = nn.MSELoss()	# mean square loss
+criterion = nn.BCELoss()	# binary cross entropy
+# criterion = nn.MSELoss()	# mean square loss
 
 # 最適化手法の選択
 optimizer = torch.optim.Adam(net.parameters()) # default: lr=1e-3
@@ -130,7 +131,7 @@ for epoch in range(max_epoch):
         break
 
 # %%
-best_net = Net()
+best_net = Net().to(device)
 best_net.load_state_dict(torch.load(model_path))
 test_loss_avg = calc_loss(best_net, test_file_loader, criterion, device)
 print("test_loss: {}".format(test_loss_avg))

@@ -2,7 +2,7 @@
 # SRC_FILE_NAME = '/workspace/dataset/data_src/wiki40b_with_emotion/val/wakati/wiki_40b_val_with_emotion.txt'
 # DST_FILE_NAME_HEAD = '/workspace/dataset/data_src/wiki40b_with_emotion/val/wakati/split/split_wiki_40b_val_with_emotion_'
 
-# BERT_to_emoのファイルを1ファイルにつき16384データとなるように分割
+# BERT_to_emoのファイルを1ファイルにつき4096データとなるように分割
 WINDOW_SIZE = 3
 MODE = 'val'
 SIZE =  4096

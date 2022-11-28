@@ -39,7 +39,7 @@ max_epoch = 10000
 # 設定
 num_workers = 24
 date = str(datetime.datetime.today().date())
-description = "batchnorm_400dim_BCE_window_3_leaky_relu"
+description = "512_400dim_BCE_window_3_leaky_relu"
 model_path = "/workspace/dataset/data/model/{}_{}.pth".format(date, description)
 print(model_path)
 

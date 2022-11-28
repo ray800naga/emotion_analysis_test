@@ -19,9 +19,9 @@ class Net(nn.Module):
 
     def forward(self, x):
         x = self.fc1(x)
-        x = self.bn(x)
-        # x = F.relu(x)
-        x = F.leaky_relu(x)
+        # x = self.bn(x)
+        x = F.relu(x)
+        # x = F.leaky_relu(x)
         x = self.fc2(x)
         # x = F.relu(x)
         # x = self.fc3(x)
@@ -32,7 +32,7 @@ class Net(nn.Module):
         x = torch.sigmoid(x)
         return x
 
-model_weight_path = "/workspace/dataset/data/model/2022-11-26_batchnorm_400dim_BCE_window_3_bn_change.pth"
+model_weight_path = "/workspace/dataset/data/model/2022-11-28_512_400dim_BCE_window_3_relu.pth"
 net = Net()
 net.load_state_dict(torch.load(model_weight_path))
 
@@ -49,7 +49,9 @@ bert = bert.to(device)
 net = net.to(device)
 
 # input_sentence = input("文章を入力：")
-input_sentence = "大切なものをなくしてしまい、悲しい。"
+# input_sentence = "大切なものをなくしてしまい、悲しい。"
+input_sentence = "今日は、海へドライブへ行ったが、天気が悪く、とても残念だった。"
+# input_sentence = "今日は、ドライブ中に交通事故に巻き込まれてしまった。"
 encoding = get_token_list(tokenizer, input_sentence)
 encoding = {k: v.unsqueeze(dim=0).to(device) for k, v in encoding.items()}
 

@@ -3,10 +3,12 @@ import ipadic
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from my_module.tools import get_token_list
+from my_module.tools import get_token_list, concat_subwords, get_list_for_window_size_consideration, show_tokens_idx_list_for_window
 import numpy as np
 import matplotlib.pyplot as plt
 import japanize_matplotlib
+from MeCab import Tagger
+import ipadic
 
 class Net(nn.Module):
 
@@ -41,6 +43,9 @@ model_name = 'cl-tohoku/bert-base-japanese-whole-word-masking'
 tokenizer = BertJapaneseTokenizer.from_pretrained(model_name)
 bert = BertModel.from_pretrained(model_name)
 
+# MeCabの設定
+tagger = Tagger(ipadic.MECAB_ARGS)
+
 # GPUの設定状況に基づいたデバイスの選択
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print("device:", device)
@@ -50,8 +55,9 @@ net = net.to(device)
 
 # input_sentence = input("文章を入力：")
 # input_sentence = "大切なものをなくしてしまい、悲しい。"
-input_sentence = "今日は、海へドライブへ行ったが、天気が悪く、とても残念だった。"
-# input_sentence = "今日は、ドライブ中に交通事故に巻き込まれてしまった。"
+# input_sentence = "今日は海へドライブへ行って、とても気持ちが良かった。"
+input_sentence = "今日は、ドライブ中に交通事故に巻き込まれてしまった。"
+# input_sentence = "道の真ん中で転んでしまい恥ずかしかったので、走ってその場を立ち去った。"
 encoding = get_token_list(tokenizer, input_sentence)
 encoding = {k: v.unsqueeze(dim=0).to(device) for k, v in encoding.items()}
 
@@ -75,8 +81,15 @@ with torch.no_grad():
     del tokens[sep_idx:]    # [SEP]以降を削除
     del last_hidden_state[sep_idx:] # 対応する出力も削除
 
+    print("入力トークン列")
     print(tokens)
-
+    token_idx_list_with_no_subword = concat_subwords(tokens)
+    print("サブワード連結後")
+    show_tokens_idx_list_for_window(tokens, token_idx_list_with_no_subword)
+    tokens_idx_list_for_window = get_list_for_window_size_consideration(tokens, token_idx_list_with_no_subword, tagger)
+    print("ウィンドウカウント対象トークン列")
+    show_tokens_idx_list_for_window(tokens, tokens_idx_list_for_window)
+    
     last_hidden_state = torch.tensor(last_hidden_state)
     last_hidden_state = last_hidden_state.to(device)
 

@@ -39,7 +39,7 @@ max_epoch = 10000
 # 設定
 num_workers = 24
 date = str(datetime.datetime.today().date())
-description = "512_400dim_BCE_window_3_leaky_relu"
+description = "512_400dim_BCE_window_3_mish"
 model_path = "/workspace/dataset/data/model/{}_{}.pth".format(date, description)
 print(model_path)
 
@@ -56,8 +56,9 @@ class Net(nn.Module):
     def forward(self, x):
         x = self.fc1(x)
         # x = self.bn(x)
-        x = F.relu(x)
+        # x = F.relu(x)
         # x = F.leaky_relu(x)
+        x = F.mish(x)
         x = self.fc2(x)
         # x = F.relu(x)
         # x = self.fc3(x)

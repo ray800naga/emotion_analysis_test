@@ -16,13 +16,14 @@ import slackweb
 
 # window_sizeを設定
 window_size = 3
+batch_size = 128
 
 #ファイル分割バージョン(省メモリ設計)	1ファイル１バッチ
-dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/split/train/".format(window_size)
+dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/split_{}/train/".format(window_size, batch_size)
 train_file_dataset = BertToEmoFileDataset(dataset_root_dir)
-dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/split/val/".format(window_size)
+dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/split_{}/val/".format(window_size, batch_size)
 val_file_dataset = BertToEmoFileDataset(dataset_root_dir)
-dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/split/test/".format(window_size)
+dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/split_{}/test/".format(window_size, batch_size)
 test_file_dataset = BertToEmoFileDataset(dataset_root_dir)
 
 # %%
@@ -35,7 +36,6 @@ test_file_dataset = BertToEmoFileDataset(dataset_root_dir)
 
 # %%
 # ハイパーパラメータ
-batch_size = 1
 max_epoch = 10000
 
 # 設定
@@ -100,9 +100,9 @@ optimizer = torch.optim.Adam(net.parameters()) # default: lr=1e-3
 
 # %%
 # FileDataloader
-train_file_loader = DataLoader(train_file_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
-val_file_loader = DataLoader(val_file_dataset, batch_size=batch_size, num_workers=num_workers)
-test_file_loader = DataLoader(test_file_dataset, batch_size=batch_size, num_workers=num_workers)
+train_file_loader = DataLoader(train_file_dataset, shuffle=True, num_workers=num_workers)
+val_file_loader = DataLoader(val_file_dataset, num_workers=num_workers)
+test_file_loader = DataLoader(test_file_dataset, num_workers=num_workers)
 
 # %%
 # early stopping

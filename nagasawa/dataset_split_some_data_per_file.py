@@ -9,7 +9,7 @@ slack = slackweb.Slack(url=url)
 
 # BERT_to_emoのファイルを1ファイルにつき4096データとなるように分割
 WINDOW_SIZE = 3
-MODE = 'val'
+MODE = 'train'
 SIZE =  128
 SRC_FILE_NAME = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/BERT_to_emo_{1}.txt'.format(WINDOW_SIZE, MODE)
 DST_FILE_NAME_HEAD = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/split_{2}/{1}/split_BERT_to_emo_{1}_'.format(WINDOW_SIZE, MODE, SIZE)

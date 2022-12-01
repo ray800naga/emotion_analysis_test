@@ -1,3 +1,6 @@
+import slackweb
+slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
+
 # wiki40b_with_emotionのtrainファイルを１ファイルに付き150000データとなるように分割
 # SRC_FILE_NAME = '/workspace/dataset/data_src/wiki40b_with_emotion/val/wakati/wiki_40b_val_with_emotion.txt'
 # DST_FILE_NAME_HEAD = '/workspace/dataset/data_src/wiki40b_with_emotion/val/wakati/split/split_wiki_40b_val_with_emotion_'
@@ -5,9 +8,9 @@
 # BERT_to_emoのファイルを1ファイルにつき4096データとなるように分割
 WINDOW_SIZE = 3
 MODE = 'val'
-SIZE =  512
+SIZE =  128
 SRC_FILE_NAME = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/BERT_to_emo_{1}.txt'.format(WINDOW_SIZE, MODE)
-DST_FILE_NAME_HEAD = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/split/{1}/split_BERT_to_emo_{1}_'.format(WINDOW_SIZE, MODE)
+DST_FILE_NAME_HEAD = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/split_{2}/{1}/split_BERT_to_emo_{1}_'.format(WINDOW_SIZE, MODE, SIZE)
 
 def write_file(data_list, file_num):
 	with open(DST_FILE_NAME_HEAD + '{:0>8}.txt'.format(file_num), 'w') as f:
@@ -29,3 +32,4 @@ with open(SRC_FILE_NAME, 'r') as f:
 	print("write:{}".format(file_num))
 	write_file(data_list, file_num)
 	print("done!")
+	slack.notify(text="split done! : {}".format(DST_FILE_NAME_HEAD))

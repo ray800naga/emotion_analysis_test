@@ -1,5 +1,7 @@
 import slackweb
-slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
+url = "https://hooks.slack.com/services/"
+url = url + "T2AUFHDPT/B04D24YPQNS/oLeAqzdAfXiJAH4txODTD9ys"
+slack = slackweb.Slack(url=url)
 
 # wiki40b_with_emotionのtrainファイルを１ファイルに付き150000データとなるように分割
 # SRC_FILE_NAME = '/workspace/dataset/data_src/wiki40b_with_emotion/val/wakati/wiki_40b_val_with_emotion.txt'

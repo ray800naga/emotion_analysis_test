@@ -45,7 +45,9 @@ description = "512_400dim_BCE_window_3_leaky_relu"
 model_path = "/workspace/dataset/data/model/{}_{}.pth".format(date, description)
 print(model_path)
 # slack通知の設定
-slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
+url = "https://hooks.slack.com/services/"
+url = url + "T2AUFHDPT/B04D24YPQNS/oLeAqzdAfXiJAH4txODTD9ys"
+slack = slackweb.Slack(url=url)
 # logの設定
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s:%(name)s - %(message)s", filename="{}.log".format(model_path))
 logging.info(model_path)

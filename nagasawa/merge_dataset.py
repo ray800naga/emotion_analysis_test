@@ -1,8 +1,12 @@
 # 分割されたデータセットを1ファイルにまとめる
 import os
 from tqdm import tqdm
+import slackweb
+url = "https://hooks.slack.com/services/"
+url = url + "T2AUFHDPT/B04D24YPQNS/oLeAqzdAfXiJAH4txODTD9ys"
+slack = slackweb.Slack(url=url)
 
-window_size = 3
+window_size = 4
 mode = "val"
 
 output_root_dirname = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/{}/".format(window_size, mode)
@@ -18,7 +22,6 @@ with open(output_root_dirname + output_file_name, 'w') as f_w:
 			for line in f_r:
 				each_file_line_count += 1
 				f_w.write(line)
-print("done!")
 
 # データ数をカウント
 with open(output_root_dirname + output_file_name, 'r') as f:
@@ -27,3 +30,5 @@ with open(output_root_dirname + output_file_name, 'r') as f:
 		count += 1
 print("{}: {}".format(output_file_name, count))
 print("each_file_line_count: ", each_file_line_count)
+print("done!")
+slack.notify(text="merge dataset done : {}".format(output_root_dirname + output_file_name))

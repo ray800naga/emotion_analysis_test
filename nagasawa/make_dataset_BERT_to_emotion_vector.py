@@ -15,8 +15,9 @@ model_name = 'cl-tohoku/bert-base-japanese-whole-word-masking'
 tokenizer = BertJapaneseTokenizer.from_pretrained(model_name)
 
 # 設定
-mode = 'test'
-window_size = 4
+mode = 'train'
+window_size = 3
+min_output = 0.5
 
 # %%
 # text_listに格納
@@ -71,7 +72,7 @@ from concurrent.futures import ProcessPoolExecutor
 count = 0
 with torch.no_grad():
     # データセット出力先を指定
-    output_name_head = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/{1}/split/BERT_to_emo_{1}_'.format(window_size, mode)
+    output_name_head = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/min_{2}/split/{1}/BERT_to_emo_{1}_'.format(window_size, mode, min_output)
     file_count = 1
     with ProcessPoolExecutor(max_workers=6) as executor:
         for file in file_loader:
@@ -87,7 +88,7 @@ with torch.no_grad():
                 last_hidden_state = last_hidden_state.cpu().numpy().tolist()
                 batch = {k: v.cpu().numpy().tolist() for k, v in batch.items()}
                 # executor.submit(get_dataset_from_batch, batch, last_hidden_state, file_count, batch_count, output_name_head, window_size)
-                get_dataset_from_batch(batch, last_hidden_state, file_count, batch_count, output_name_head, window_size)
+                get_dataset_from_batch(batch, last_hidden_state, file_count, batch_count, output_name_head, window_size, min_output)
                 batch_count += 1
             file_count += 1
 print('done!')

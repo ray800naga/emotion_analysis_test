@@ -6,12 +6,13 @@ url = "https://hooks.slack.com/services/"
 url = url + "T2AUFHDPT/B04D24YPQNS/oLeAqzdAfXiJAH4txODTD9ys"
 slack = slackweb.Slack(url=url)
 
-window_size = 4
-mode = "val"
+window_size = 3
+mode = "test"
+min_output = 0.5
 
-output_root_dirname = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/{}/".format(window_size, mode)
+output_root_dirname = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/min_{}/".format(window_size, min_output)
 output_file_name = "BERT_to_emo_{}.txt".format(mode)
-input_root_dirname = output_root_dirname + "split/"
+input_root_dirname = output_root_dirname + "split/" + mode
 
 file_names = [os.path.join(input_root_dirname, n) for n in os.listdir(input_root_dirname)]
 

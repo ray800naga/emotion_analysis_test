@@ -16,14 +16,15 @@ import slackweb
 
 # window_sizeを設定
 window_size = 3
-batch_size = 128
+batch_size = 512
+min_output = 0.5
 
 #ファイル分割バージョン(省メモリ設計)	1ファイル１バッチ
-dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/split_{}/train/".format(window_size, batch_size)
+dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/min_{}/split_{}/train/".format(window_size, min_output, batch_size)
 train_file_dataset = BertToEmoFileDataset(dataset_root_dir)
-dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/split_{}/val/".format(window_size, batch_size)
+dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/min_{}/split_{}/val/".format(window_size, min_output, batch_size)
 val_file_dataset = BertToEmoFileDataset(dataset_root_dir)
-dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/split_{}/test/".format(window_size, batch_size)
+dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/min_{}/split_{}/test/".format(window_size, min_output, batch_size)
 test_file_dataset = BertToEmoFileDataset(dataset_root_dir)
 
 # %%
@@ -41,7 +42,7 @@ max_epoch = 10000
 # 設定
 num_workers = 24
 date = str(datetime.datetime.today().date())
-description = "512_400dim_BCE_window_3_leaky_relu"
+description = "512_400dim_MSE_window_3_weight_relu"
 model_path = "/workspace/dataset/data/model/{}_{}.pth".format(date, description)
 print(model_path)
 # slack通知の設定
@@ -65,8 +66,8 @@ class Net(nn.Module):
     def forward(self, x):
         x = self.fc1(x)
         # x = self.bn(x)
-        # x = F.relu(x)
-        x = F.leaky_relu(x)
+        x = F.relu(x)
+        # x = F.leaky_relu(x)
         # x = F.mish(x)
         x = self.fc2(x)
         # x = F.relu(x)
@@ -92,8 +93,8 @@ torch.manual_seed(0)
 net = Net().to(device)
 
 # 損失関数の選択
-criterion = nn.BCELoss()	# binary cross entropy
-# criterion = nn.MSELoss()	# mean square loss
+# criterion = nn.BCELoss()	# binary cross entropy
+criterion = nn.MSELoss()	# mean square loss
 
 # 最適化手法の選択
 optimizer = torch.optim.Adam(net.parameters()) # default: lr=1e-3

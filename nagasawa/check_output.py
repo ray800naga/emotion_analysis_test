@@ -22,9 +22,9 @@ class Net(nn.Module):
     def forward(self, x):
         x = self.fc1(x)
         # x = self.bn(x)
-        # x = F.relu(x)
+        x = F.relu(x)
         # x = F.leaky_relu(x)
-        x = F.mish(x)
+        # x = F.mish(x)
         x = self.fc2(x)
         # x = F.relu(x)
         # x = self.fc3(x)
@@ -35,7 +35,7 @@ class Net(nn.Module):
         x = torch.sigmoid(x)
         return x
 
-model_weight_path = "/workspace/dataset/data/model/2022-11-29_512_400dim_BCE_window_3_mish.pth"
+model_weight_path = "/workspace/dataset/data/model/2022-12-04_512_400dim_MSE_window_3_weight_relu.pth"
 net = Net()
 net.load_state_dict(torch.load(model_weight_path))
 
@@ -48,7 +48,8 @@ bert = BertModel.from_pretrained(model_name)
 tagger = Tagger(ipadic.MECAB_ARGS)
 
 # GPUの設定状況に基づいたデバイスの選択
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+# device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cpu')
 print("device:", device)
 
 bert = bert.to(device)

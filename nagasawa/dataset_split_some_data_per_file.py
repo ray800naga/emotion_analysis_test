@@ -3,18 +3,19 @@ url = "https://hooks.slack.com/services/"
 url = url + "T2AUFHDPT/B04D24YPQNS/oLeAqzdAfXiJAH4txODTD9ys"
 slack = slackweb.Slack(url=url)
 
-# BERT_to_emoのファイルを1ファイルにつき4096データとなるように分割
-# WINDOW_SIZE = 3
-# MODE = 'train'
-# SIZE =  128
-# SRC_FILE_NAME = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/BERT_to_emo_{1}.txt'.format(WINDOW_SIZE, MODE)
-# DST_FILE_NAME_HEAD = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/split_{2}/{1}/split_BERT_to_emo_{1}_'.format(WINDOW_SIZE, MODE, SIZE)
+# BERT_to_emoのファイルを1ファイルにつき512データとなるように分割
+WINDOW_SIZE = 3
+MODE = 'val'
+SIZE =  512
+MIN_OUTPUT = 0.5
+SRC_FILE_NAME = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/min_{1}/BERT_to_emo_{2}.txt'.format(WINDOW_SIZE, MIN_OUTPUT, MODE)
+DST_FILE_NAME_HEAD = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/min_{1}/split_{2}/{3}/split_BERT_to_emo_{3}_'.format(WINDOW_SIZE, MIN_OUTPUT, SIZE, MODE)
 
 # wiki40b_with_emotionのtrainファイルを１ファイルに付き15000データとなるように分割
-MODE = "train"
-SIZE = 15000
-SRC_FILE_NAME = '/workspace/dataset/data_src/wiki40b_with_emotion/{0}/wakati/wiki_40b_{0}_with_emotion.txt'.format(MODE)
-DST_FILE_NAME_HEAD = '/workspace/dataset/data_src/wiki40b_with_emotion/{0}/wakati/split/split_wiki_40b_{0}_with_emotion_'.format(MODE)
+# MODE = "train"
+# SIZE = 15000
+# SRC_FILE_NAME = '/workspace/dataset/data_src/wiki40b_with_emotion/{0}/wakati/wiki_40b_{0}_with_emotion.txt'.format(MODE)
+# DST_FILE_NAME_HEAD = '/workspace/dataset/data_src/wiki40b_with_emotion/{0}/wakati/split/split_wiki_40b_{0}_with_emotion_'.format(MODE)
 
 
 def write_file(data_list, file_num):

@@ -3,9 +3,13 @@ url = "https://hooks.slack.com/services/"
 url = url + "T2AUFHDPT/B04D24YPQNS/oLeAqzdAfXiJAH4txODTD9ys"
 slack = slackweb.Slack(url=url)
 
+import sys
+
+args = sys.argv
+
 # BERT_to_emoのファイルを1ファイルにつき512データとなるように分割
-WINDOW_SIZE = 3
-MODE = 'val'
+WINDOW_SIZE = 4
+MODE = args[1]
 SIZE =  512
 MIN_OUTPUT = 0.5
 SRC_FILE_NAME = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/min_{1}/BERT_to_emo_{2}.txt'.format(WINDOW_SIZE, MIN_OUTPUT, MODE)

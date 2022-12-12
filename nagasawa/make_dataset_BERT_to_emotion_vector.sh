@@ -1,3 +1,3 @@
-python make_dataset_BERT_to_emotion.py train
-python make_dataset_BERT_to_emotion.py test
-python make_dataset_BERT_to_emotion.py val
+python make_dataset_BERT_to_emotion_vector.py train
+python make_dataset_BERT_to_emotion_vector.py test
+python make_dataset_BERT_to_emotion_vector.py val

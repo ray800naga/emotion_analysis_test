@@ -19,7 +19,7 @@ import sys
 
 args = sys.argv
 mode = args[1]
-window_size = 4
+window_size = 2
 min_output = 0.5
 
 # %%

@@ -9,13 +9,13 @@ slack = slackweb.Slack(url=url)
 
 args = sys.argv
 
-window_size = 4
+window_size = 2
 mode = args[1]
 min_output = 0.5
 
-output_root_dirname = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/min_{}/".format(window_size, min_output)
+input_root_dirname = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/min_{}/split/{}".format(window_size, min_output, mode)
 output_file_name = "BERT_to_emo_{}.txt".format(mode)
-input_root_dirname = output_root_dirname + "split/" + mode
+output_root_dirname = "/workspace/SSD/BERT_to_emotion/window_size_{}/min_{}/".format(window_size, min_output)
 
 file_names = [os.path.join(input_root_dirname, n) for n in os.listdir(input_root_dirname)]
 

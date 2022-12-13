@@ -10,6 +10,12 @@ import japanize_matplotlib
 from MeCab import Tagger
 import ipadic
 
+def is_in_list_for_window(idx, tokens_idx_list_for_window):
+    for token_idx_list in tokens_idx_list_for_window:
+        if idx in token_idx_list:
+            return True
+    return False
+
 class Net(nn.Module):
 
     def __init__(self):
@@ -57,8 +63,8 @@ net = net.to(device)
 
 # input_sentence = input("文章を入力：")
 # input_sentence = "大切なものをなくしてしまい、悲しい。"
-input_sentence = "今日は海へドライブに行って、とても気持ちが良かった。"
-# input_sentence = "今日は、ドライブ中に交通事故に巻き込まれてしまった。"
+# input_sentence = "今日は海へドライブに行って、とても気持ちが良かった。"
+input_sentence = "今日は、ドライブ中に交通事故に巻き込まれてしまった。"
 # input_sentence = "道の真ん中で転んでしまい恥ずかしかったので、走ってその場を立ち去った。"
 encoding = get_token_list(tokenizer, input_sentence)
 encoding = {k: v.unsqueeze(dim=0).to(device) for k, v in encoding.items()}
@@ -98,10 +104,11 @@ with torch.no_grad():
     output = net(last_hidden_state)
     output = output.cpu().numpy()
     for idx, token in enumerate(tokens):
-        print(token)
-        print(output[idx])
-        plt.bar(left, output[idx], tick_label=emotion_label)
-        plt.ylim(0, 1)
-        plt.title(token)
-        plt.savefig("/workspace/{}.png".format(idx))
-        plt.clf()
+        if is_in_list_for_window(idx, tokens_idx_list_for_window):
+            print(token)
+            print(output[idx])
+            plt.bar(left, output[idx], tick_label=emotion_label)
+            plt.ylim(0, 1)
+            plt.title(token)
+            plt.savefig("/workspace/{}.png".format(idx))
+            plt.clf()

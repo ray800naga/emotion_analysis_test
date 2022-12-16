@@ -1,0 +1,3 @@
+python make_dataset_embed_to_emotion_vector.py train
+python make_dataset_embed_to_emotion_vector.py test
+python make_dataset_embed_to_emotion_vector.py val

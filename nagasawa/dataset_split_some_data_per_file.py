@@ -8,12 +8,18 @@ import sys
 args = sys.argv
 
 # BERT_to_emoのファイルを1ファイルにつき512データとなるように分割
-WINDOW_SIZE = 4
+WINDOW_SIZE = 3
 MODE = args[1]
 SIZE =  512
-MIN_OUTPUT = 0.5
-SRC_FILE_NAME = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/min_{1}/BERT_to_emo_{2}.txt'.format(WINDOW_SIZE, MIN_OUTPUT, MODE)
-DST_FILE_NAME_HEAD = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/min_{1}/split_{2}/{3}/split_BERT_to_emo_{3}_'.format(WINDOW_SIZE, MIN_OUTPUT, SIZE, MODE)
+MIN_OUTPUT = 1
+BERT = False
+
+if BERT == True:
+	SRC_FILE_NAME = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/min_{1}/BERT_to_emo_{2}.txt'.format(WINDOW_SIZE, MIN_OUTPUT, MODE)
+	DST_FILE_NAME_HEAD = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/min_{1}/split_{2}/{3}/split_BERT_to_emo_{3}_'.format(WINDOW_SIZE, MIN_OUTPUT, SIZE, MODE)
+else:
+	SRC_FILE_NAME = '/workspace/dataset/data_src/embed_to_emotion/window_size_{0}/min_{1}/embed_to_emo_{2}.txt'.format(WINDOW_SIZE, MIN_OUTPUT, MODE)
+	DST_FILE_NAME_HEAD = '/workspace/dataset/data_src/embed_to_emotion/window_size_{0}/min_{1}/split_{2}/{3}/split_embed_to_emo_{3}_'.format(WINDOW_SIZE, MIN_OUTPUT, SIZE, MODE)
 
 # wiki40b_with_emotionのtrainファイルを１ファイルに付き15000データとなるように分割
 # MODE = "train"

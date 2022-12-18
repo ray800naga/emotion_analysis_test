@@ -17,15 +17,24 @@ import slackweb
 # window_sizeを設定
 window_size = 3
 batch_size = 512
-min_output = 0.5
+min_output = 1
+BERT = False
 
 #ファイル分割バージョン(省メモリ設計)	1ファイル１バッチ
-dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/min_{}/split_{}/train/".format(window_size, min_output, batch_size)
-train_file_dataset = BertToEmoFileDataset(dataset_root_dir)
-dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/min_{}/split_{}/val/".format(window_size, min_output, batch_size)
-val_file_dataset = BertToEmoFileDataset(dataset_root_dir)
-dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/min_{}/split_{}/test/".format(window_size, min_output, batch_size)
-test_file_dataset = BertToEmoFileDataset(dataset_root_dir)
+if BERT == True:
+    dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/min_{}/split_{}/train/".format(window_size, min_output, batch_size)
+    train_file_dataset = BertToEmoFileDataset(dataset_root_dir)
+    dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/min_{}/split_{}/val/".format(window_size, min_output, batch_size)
+    val_file_dataset = BertToEmoFileDataset(dataset_root_dir)
+    dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/min_{}/split_{}/test/".format(window_size, min_output, batch_size)
+    test_file_dataset = BertToEmoFileDataset(dataset_root_dir)
+else:
+    dataset_root_dir = "/workspace/dataset/data_src/embed_to_emotion/window_size_{}/min_{}/split_{}/train/".format(window_size, min_output, batch_size)
+    train_file_dataset = BertToEmoFileDataset(dataset_root_dir)
+    dataset_root_dir = "/workspace/dataset/data_src/embed_to_emotion/window_size_{}/min_{}/split_{}/val/".format(window_size, min_output, batch_size)
+    val_file_dataset = BertToEmoFileDataset(dataset_root_dir)
+    dataset_root_dir = "/workspace/dataset/data_src/embed_to_emotion/window_size_{}/min_{}/split_{}/test/".format(window_size, min_output, batch_size)
+    test_file_dataset = BertToEmoFileDataset(dataset_root_dir)
 
 # %%
 # Pickle化したデータセットを読み込み
@@ -43,7 +52,7 @@ max_epoch = 10000
 num_workers = 24
 date = str(datetime.datetime.today().date())
 description = "512_400dim_MSE_window_3_weight_relu"
-model_path = "/workspace/dataset/data/model/{}_{}.pth".format(date, description)
+model_path = "/workspace/dataset/data/model/{}_{}_{}.pth".format(BERT, date, description)
 print(model_path)
 # slack通知の設定
 url = "https://hooks.slack.com/services/"

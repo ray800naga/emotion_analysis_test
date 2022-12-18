@@ -19,8 +19,8 @@ import sys
 
 args = sys.argv
 mode = args[1]
-window_size = 2
-min_output = 0.5
+window_size = 3
+min_output = 1
 
 # %%
 # text_listに格納
@@ -75,11 +75,11 @@ from concurrent.futures import ProcessPoolExecutor
 count = 0
 with torch.no_grad():
     # データセット出力先を指定
-    output_name_head = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/min_{2}/split/{1}/BERT_to_emo_{1}_'.format(window_size, mode, min_output)
+    output_name_head = '/workspace/dataset/data_src/BERT_to_embed/window_size_{0}/min_{2}/split/{1}/BERT_to_emo_{1}_'.format(window_size, mode, min_output)
     file_count = 1
     for file in file_loader:
         print("file_count: {} / {}".format(file_count, file_loader.__len__()))
-        batch_loader = DataLoader(file, batch_size=4)
+        batch_loader = DataLoader(file, batch_size=512)
         batch_count = 1
         for batch in tqdm(batch_loader):
             # データをGPUに乗せる

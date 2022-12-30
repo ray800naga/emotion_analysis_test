@@ -3,7 +3,7 @@ import ipadic
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from my_module.tools import get_token_list, concat_subwords, get_list_for_window_size_consideration, show_tokens_idx_list_for_window
+from my_module.tools import get_token_list, concat_subwords, get_list_for_window_size_consideration, show_tokens_idx_list_for_window, get_word_from_subwords
 import numpy as np
 import matplotlib.pyplot as plt
 import japanize_matplotlib
@@ -41,7 +41,7 @@ class Net(nn.Module):
         x = torch.sigmoid(x)
         return x
 
-model_weight_path = "/workspace/dataset/data/model/False_2022-12-18_embed_512_400dim_MSE_window_3_relu.pth"
+model_weight_path = "/workspace/dataset/data/model/False_512_400dim_MSE_window_3_relu.pth"
 net = Net()
 net.load_state_dict(torch.load(model_weight_path))
 
@@ -63,7 +63,7 @@ net = net.to(device)
 
 # input_sentence = input("文章を入力：")
 # input_sentence = "大切なものをなくしてしまい、悲しい。"
-input_sentence = "今日は海へドライブに行って、とても気持ちが良かった。"
+input_sentence = "今日は海へドライブに行って、とても気持ち良かった。"
 # input_sentence = "今日は、ドライブ中に交通事故に巻き込まれてしまった。"
 # input_sentence = "道の真ん中で転んでしまい恥ずかしかったので、走ってその場を立ち去った。"
 encoding = get_token_list(tokenizer, input_sentence)
@@ -98,18 +98,28 @@ with torch.no_grad():
     tokens_idx_list_for_window = get_list_for_window_size_consideration(tokens, token_idx_list_with_no_subword, tagger)
     print("ウィンドウカウント対象トークン列")
     show_tokens_idx_list_for_window(tokens, tokens_idx_list_for_window)
+    print(tokens_idx_list_for_window)
     
     embeddings = torch.tensor(embeddings)
     embeddings = embeddings.to(device)
 
     output = net(embeddings)
     output = output.cpu().numpy()
-    for idx, token in enumerate(tokens):
-        if is_in_list_for_window(idx, tokens_idx_list_for_window):
-            print(token)
-            print(output[idx])
-            plt.bar(left, output[idx], tick_label=emotion_label)
-            plt.ylim(0, 1)
-            plt.title(token)
-            plt.savefig("/workspace/{}.png".format(idx))
-            plt.clf()
+
+    count = 0
+    for token_idx_list in tokens_idx_list_for_window:
+        count += 1
+        word = get_word_from_subwords(tokens, token_idx_list)
+        output_list = []
+        for token_idx in token_idx_list:
+            output_list.append(output[token_idx])
+        output_average = np.average(output_list, axis=0)
+        print(word)
+        print(output_average)
+        plt.bar(left, output_average, tick_label=emotion_label)
+        plt.ylim(0, 1)
+        plt.title(word)
+        plt.savefig("/workspace/{:0=3}_{}.png".format(count, word))
+        plt.clf()
+
+    

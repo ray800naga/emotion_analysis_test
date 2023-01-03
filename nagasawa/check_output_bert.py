@@ -46,7 +46,7 @@ class Net(nn.Module):
         x = torch.sigmoid(x)
         return x
 
-model_weight_path = "/workspace/dataset/data/model/512_400dim_MSE_window_3_weight_relu.pth"
+model_weight_path = "/workspace/dataset/data/model/512_400dim_MSE_window_3_relu.pth"
 net = Net()
 net.load_state_dict(torch.load(model_weight_path))
 

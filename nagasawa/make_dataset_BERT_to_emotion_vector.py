@@ -79,7 +79,7 @@ with torch.no_grad():
     file_count = 1
     for file in file_loader:
         print("file_count: {} / {}".format(file_count, file_loader.__len__()))
-        batch_loader = DataLoader(file, batch_size=128)
+        batch_loader = DataLoader(file, batch_size=1240)
         batch_count = 1
         for batch in tqdm(batch_loader):
             # データをGPUに乗せる

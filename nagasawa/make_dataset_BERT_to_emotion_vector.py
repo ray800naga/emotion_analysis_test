@@ -19,8 +19,8 @@ import sys
 
 args = sys.argv
 mode = args[1]
-window_size = 2
-min_output = 0.5
+window_size = 10
+# min_output = 0.5
 
 # %%
 # text_listに格納
@@ -75,11 +75,11 @@ from concurrent.futures import ProcessPoolExecutor
 count = 0
 with torch.no_grad():
     # データセット出力先を指定
-    output_name_head = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/min_{2}/split/{1}/BERT_to_emo_{1}_'.format(window_size, mode, min_output)
+    output_name_head = '/workspace/dataset/data_src/BERT_to_emotion/max_window_size_{0}/split/{1}/BERT_to_emo_{1}_'.format(window_size, mode)
     file_count = 1
     for file in file_loader:
         print("file_count: {} / {}".format(file_count, file_loader.__len__()))
-        batch_loader = DataLoader(file, batch_size=1024)
+        batch_loader = DataLoader(file, batch_size=128)
         batch_count = 1
         for batch in tqdm(batch_loader):
             # データをGPUに乗せる
@@ -89,7 +89,7 @@ with torch.no_grad():
             last_hidden_state = output.last_hidden_state
             last_hidden_state = last_hidden_state.cpu().numpy().tolist()
             batch = {k: v.cpu().numpy().tolist() for k, v in batch.items()}
-            get_dataset_from_batch(batch, last_hidden_state, file_count, batch_count, output_name_head, window_size, min_output)
+            get_dataset_from_batch(batch, last_hidden_state, file_count, batch_count, output_name_head, window_size)
             batch_count += 1
         file_count += 1
 print('done!')

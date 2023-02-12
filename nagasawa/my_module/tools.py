@@ -35,7 +35,7 @@ def get_genkei_list(text, tagger):
     return genkei_list
 
 # 取得したバッチからデータセットを生成
-def get_dataset_from_batch(encoding_list, last_hidden_state, file_count, batch_count, output_name_head, window_size, min_output):
+def get_dataset_from_batch(encoding_list, last_hidden_state, file_count, batch_count, output_name_head, window_size):
     model_name = 'cl-tohoku/bert-base-japanese-whole-word-masking'
     tokenizer = BertJapaneseTokenizer.from_pretrained(model_name)
     tagger = Tagger(ipadic.MECAB_ARGS)
@@ -71,27 +71,25 @@ def get_dataset_from_batch(encoding_list, last_hidden_state, file_count, batch_c
             for emotion_word_idx in emotion_word_idx_list:
                 emotion_word = get_word_from_subwords(tokens, tokens_idx_list_for_window[emotion_word_idx])
                 emotion_word_genkei = get_genkei(emotion_word, tagger)
-                emotion_vector = [float(emotion_value) for emotion_value in emotion_word_dict[emotion_word_genkei]]
+                emotion_vector = emotion_word_dict[emotion_word_genkei]
                 for j in tokens_idx_list_for_window[emotion_word_idx]:
                     # print("{} : {}".format(tokens[j], emotion_vector)) # for debug
-                    f.write("{}\t{}\n".format(last_hidden_state[i][j], emotion_vector))
+                    # 感性語には距離情報(0)を最後のフィールドに付加
+                    f.write("{}\t{}\t0\n".format(last_hidden_state[i][j], emotion_vector))
                 # ウィンドウサイズ分の周辺単語も、emotion_vectorを持つ単語としてデータセットに登録
-                emotion_vector = np.array(emotion_vector)
                 for window in range(1, window_size + 1):
-                    weighted_emotion_vector = emotion_vector * (1 - (1 - min_output) * window / window_size)
-                    weighted_emotion_vector = weighted_emotion_vector.tolist()
                     # 前方向
                     outer_idx = emotion_word_idx - window
                     if outer_idx >= 0:
                         for k in tokens_idx_list_for_window[outer_idx]:
                             # print("{} : {}".format(tokens[k], weighted_emotion_vector)) # for debug
-                            f.write("{}\t{}\n".format(last_hidden_state[i][k], weighted_emotion_vector))
+                            f.write("{}\t{}\t{}\n".format(last_hidden_state[i][k], emotion_vector, window))
                     # 後方向
                     outer_idx = emotion_word_idx + window
                     if outer_idx < len(tokens_idx_list_for_window):
                         for k in tokens_idx_list_for_window[outer_idx]:
                             # print("{} : {}".format(tokens[k], weighted_emotion_vector)) # for debug
-                            f.write("{}\t{}\n".format(last_hidden_state[i][k], weighted_emotion_vector))
+                            f.write("{}\t{}\t{}\n".format(last_hidden_state[i][k], emotion_vector, window))
     
 def show_tokens_idx_list_for_window(tokens, tokens_idx_list_for_window):
     for idx_list in tokens_idx_list_for_window:

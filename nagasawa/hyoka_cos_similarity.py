@@ -3,6 +3,11 @@ import numpy as np
 def cos_sim(v1, v2):
     return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
 
+def put_list_into_file(list, method, word_group):
+	with open(f"/home/student/docker_share/dataset/data/hyoka/jikken_1/{method}/cos_sim_{method}_{word_group}.txt", 'w') as f:
+		for num in list:
+			f.write(f"{num}\n")
+
 method_list = ["BERT+weight", "BERT", "embedding"]
 for method in method_list:
 	with open("/home/student/docker_share/dataset/data/hyoka/jikken_1/human/emotion_vector_all.txt", 'r') as f_human:
@@ -29,6 +34,14 @@ for method in method_list:
 			cos_sim_list_kansei_tagi = np.array(cos_sim_list_kansei_tagi)
 
 			print(f"{method}-all: {np.mean(cos_sim_list_all)}")
+			print(cos_sim_list_all)
+			put_list_into_file(cos_sim_list_all, method, "all")
 			print(f"{method}-noramal: {np.mean(cos_sim_list_normal)}")
+			print(cos_sim_list_normal)
+			put_list_into_file(cos_sim_list_normal, method, "normal")
 			print(f"{method}-kansei: {np.mean(cos_sim_list_kansei)}")
+			print(cos_sim_list_kansei)
+			put_list_into_file(cos_sim_list_kansei, method, "kansei")
 			print(f"{method}-kansei_tagi: {np.mean(cos_sim_list_kansei_tagi)}")
+			print(cos_sim_list_kansei_tagi)
+			put_list_into_file(cos_sim_list_kansei_tagi, method, "kansei_tagi")

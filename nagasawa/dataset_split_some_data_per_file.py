@@ -8,21 +8,21 @@ import sys
 args = sys.argv
 
 # BERT_to_emoのファイルを1ファイルにつき512データとなるように分割
-WINDOW_SIZE = 3
+WINDOW_SIZE = 6
 MODE = args[1]
 SIZE =  512
-MIN_OUTPUT = 1
-BERT = False
+# BERT = False
 
-if BERT == True:
-	SRC_FILE_NAME = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/min_{1}/BERT_to_emo_{2}.txt'.format(WINDOW_SIZE, MIN_OUTPUT, MODE)
-	DST_FILE_NAME_HEAD = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/min_{1}/split_{2}/{3}/split_BERT_to_emo_{3}_'.format(WINDOW_SIZE, MIN_OUTPUT, SIZE, MODE)
-else:
-	SRC_FILE_NAME = '/workspace/dataset/data_src/embed_to_emotion/window_size_{0}/min_{1}/embed_to_emo_{2}.txt'.format(WINDOW_SIZE, MIN_OUTPUT, MODE)
-	DST_FILE_NAME_HEAD = '/workspace/dataset/data_src/embed_to_emotion/window_size_{0}/min_{1}/split_{2}/{3}/split_embed_to_emo_{3}_'.format(WINDOW_SIZE, MIN_OUTPUT, SIZE, MODE)
+# if BERT == True:
+SRC_FILE_NAME = '/workspace/dataset/data_src/BERT_to_emotion/max_window_size_10/BERT_to_emo_{}.txt'.format(MODE)
+DST_FILE_NAME_HEAD = '/workspace/dataset/data_src/BERT_to_emotion/window_size_{0}/split_{1}/{2}/split_BERT_to_emo_{2}_'.format(WINDOW_SIZE, SIZE, MODE)
+
+# else:
+# 	SRC_FILE_NAME = '/workspace/dataset/data_src/embed_to_emotion/window_size_{0}/min_{1}/embed_to_emo_{2}.txt'.format(WINDOW_SIZE, MIN_OUTPUT, MODE)
+# 	DST_FILE_NAME_HEAD = '/workspace/dataset/data_src/embed_to_emotion/window_size_{0}/min_{1}/split_{2}/{3}/split_embed_to_emo_{3}_'.format(WINDOW_SIZE, MIN_OUTPUT, SIZE, MODE)
 
 # wiki40b_with_emotionのtrainファイルを１ファイルに付き15000データとなるように分割
-# MODE = "train"
+# MODE = "val"
 # SIZE = 15000
 # SRC_FILE_NAME = '/workspace/dataset/data_src/wiki40b_with_emotion/{0}/wakati/wiki_40b_{0}_with_emotion.txt'.format(MODE)
 # DST_FILE_NAME_HEAD = '/workspace/dataset/data_src/wiki40b_with_emotion/{0}/wakati/split/split_wiki_40b_{0}_with_emotion_'.format(MODE)
@@ -38,9 +38,11 @@ with open(SRC_FILE_NAME, 'r') as f:
 	file_num = 1
 	data_list = []
 	for line in f:
-		count += 1
-		data_list.append(line)
-		if count % SIZE == 0:
+		line_list = line.split('\t')
+		if int(line_list[2]) <= WINDOW_SIZE:
+			count += 1
+			data_list.append(line)
+		if len(data_list) == SIZE:
 			print("write:{}".format(file_num))
 			write_file(data_list, file_num)
 			file_num += 1

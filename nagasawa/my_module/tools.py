@@ -7,7 +7,7 @@ from tqdm import tqdm
 import numpy as np
 from MeCab import Tagger
 import ipadic
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 
 NON_STOP_WORD = ['動詞', '名詞', '形容詞', '形容動詞']
 STOP_JOUKEN = ['代名詞', '接尾', '非自立', '数']
@@ -94,17 +94,14 @@ def get_dataset_from_batch(encoding_list, last_hidden_state, file_count, batch_c
 
 # 取得したバッチからデータセットを生成(並列化)
 def get_dataset_from_batch_multi_process(encoding_list, last_hidden_state, file_count, batch_count, output_name_head, window_size):
-    model_name = 'cl-tohoku/bert-base-japanese-whole-word-masking'
-    tokenizer = BertJapaneseTokenizer.from_pretrained(model_name)
-    tagger = Tagger(ipadic.MECAB_ARGS)
     emotion_word_dict = get_emotion_word_dict()
     batch_len = len(encoding_list['input_ids'])
     # print("batch_num: ", batch_num)
     with open(output_name_head + "{:0>8}_{:0>8}.txt".format(file_count, batch_count), 'w') as f:
-        with ProcessPoolExecutor(max_worker=10) as executor:
+        with ProcessPoolExecutor(max_workers=10) as executor:
             future_list = []
             for i in range(batch_len):
-                future_list.append(executor.submit(get_dataset_from_batch_multi_process_child, tokenizer, encoding_list['input_ids'][i], last_hidden_state[i], tagger, emotion_word_dict, window_size))
+                future_list.append(executor.submit(get_dataset_from_batch_multi_process_child, encoding_list['input_ids'][i], last_hidden_state[i], emotion_word_dict, window_size))
         for future in future_list:
             result = future.result()
             if result == False:
@@ -113,7 +110,10 @@ def get_dataset_from_batch_multi_process(encoding_list, last_hidden_state, file_
                 for line in result:
                     f.write(line)
             
-def get_dataset_from_batch_multi_process_child(tokenizer, encoding_list_input_ids_i, last_hidden_state_i, tagger, emotion_word_dict, window_size):
+def get_dataset_from_batch_multi_process_child(encoding_list_input_ids_i, last_hidden_state_i, emotion_word_dict, window_size):
+    model_name = 'cl-tohoku/bert-base-japanese-whole-word-masking'
+    tokenizer = BertJapaneseTokenizer.from_pretrained(model_name)
+    tagger = Tagger(ipadic.MECAB_ARGS)
     # input_ids には1文のid列が格納されている。
     tokens = tokenizer.convert_ids_to_tokens(encoding_list_input_ids_i)
     # taggers = tagger.parse(text).split("\n")
@@ -282,8 +282,10 @@ class TokenListFileDataset(Dataset):
 
 # BERT特徴量と感情ベクトルのデータセットを取得(多量データ対応のため、ファイル分割対応→1ファイル1文)
 class BertToEmoFileDataset(Dataset):
-    def __init__(self, root_dirname):
+    def __init__(self, root_dirname, window_size, min_output):
         self.filenames = [os.path.join(root_dirname, n) for n in os.listdir(root_dirname)]
+        self.window_size = window_size
+        self.min_output = min_output
 
     def __len__(self):
         return len(self.filenames)
@@ -300,16 +302,26 @@ class BertToEmoFileDataset(Dataset):
                 input_vec = data[0][1:-1].split(', ')
                 # floatに変換
                 input_vec = list(map(float, input_vec))
-                # 出力地の処理(10dim)
+                # 出力値の処理(10dim)
                 # 大かっこを落として、「, 」で分割
                 output_vec = data[1][1:-1].split(', ')
                 # floatに変換
-                output_vec = list(map(float, output_vec))
+                output_vec = np.array(list(map(float, output_vec)))
+                # 感性語からの距離を取得
+                distance = int(data[2])
+                vector_strength = 1 - (1 - self.min_output) * (distance / self.window_size)
+                # print("distance, vector_strength: ", distance, vector_strength) # for debug
+                # ベクトル強度を弱める
+                output_vec = output_vec * vector_strength
+                output_vec = output_vec.tolist()
+                # print(input_vec)
+                # print(output_vec) # for debug
                 # リストに格納
                 input_vec_list.append(input_vec)
                 output_vec_list.append(output_vec)
         input_vec_list = torch.tensor(input_vec_list)
         output_vec_list = torch.tensor(output_vec_list)
+        # print("in Dataset:{} ".format(idx), input_vec_list.size(), output_vec_list.size())
         return input_vec_list, output_vec_list
 
 # BERT特徴量と感情ベクトルのデータセットを取得(ファイルまるごと一気に読み込み)

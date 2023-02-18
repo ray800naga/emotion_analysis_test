@@ -9,19 +9,19 @@ slack = slackweb.Slack(url=url)
 
 args = sys.argv
 
-window_size = 3
+window_size = 10
 mode = args[1]
-min_output = 1
-BERT = False
+window_size = 3
+# BERT = True
 
-if BERT == True:
-	input_root_dirname = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/min_{}/split/{}".format(window_size, min_output, mode)
-	output_file_name = "BERT_to_emo_{}.txt".format(mode)
-	output_root_dirname = "/workspace/SSD/BERT_to_emotion/window_size_{}/min_{}/".format(window_size, min_output)
-else:
-	input_root_dirname = "/workspace/dataset/data_src/embed_to_emotion/window_size_{}/min_{}/split/{}".format(window_size, min_output, mode)
-	output_file_name = "embed_to_emo_{}.txt".format(mode)
-	output_root_dirname = "/workspace/SSD/embed_to_emotion/window_size_{}/min_{}/".format(window_size, min_output)
+# if BERT == True:
+input_root_dirname = "/workspace/dataset/data_src/BERT_to_emotion/max_window_size_10/split/{}".format(mode)
+output_file_name = "BERT_to_emo_{}.txt".format(mode)
+output_root_dirname = "/workspace/dataset/data_src/BERT_to_emotion/max_window_size_10/"
+# else:
+# 	input_root_dirname = "/workspace/dataset/data_src/embed_to_emotion/window_size_{}/min_{}/split/{}".format(window_size, min_output, mode)
+# 	output_file_name = "embed_to_emo_{}.txt".format(mode)
+# 	output_root_dirname = "/workspace/SSD/embed_to_emotion/window_size_{}/min_{}/".format(window_size, min_output)
 
 file_names = [os.path.join(input_root_dirname, n) for n in os.listdir(input_root_dirname)]
 

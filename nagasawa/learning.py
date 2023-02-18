@@ -5,7 +5,6 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from my_module.tools import BertToEmoFileDataset, BertToEmoDirectDataset, calc_loss, EarlyStopping
 from tqdm import tqdm
-import pickle
 import datetime
 import logging
 import slackweb
@@ -15,26 +14,26 @@ import slackweb
 # データセットが存在するディレクトリを指定
 
 # window_sizeを設定
-window_size = 3
+window_size = 6
 batch_size = 512
-min_output = 1
-BERT = False
+min_output = 0.5
+BERT = True
 
 #ファイル分割バージョン(省メモリ設計)	1ファイル１バッチ
 if BERT == True:
-    dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/min_{}/split_{}/train/".format(window_size, min_output, batch_size)
-    train_file_dataset = BertToEmoFileDataset(dataset_root_dir)
-    dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/min_{}/split_{}/val/".format(window_size, min_output, batch_size)
-    val_file_dataset = BertToEmoFileDataset(dataset_root_dir)
-    dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/min_{}/split_{}/test/".format(window_size, min_output, batch_size)
-    test_file_dataset = BertToEmoFileDataset(dataset_root_dir)
+    dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/split_{}/train/".format(window_size, batch_size)
+    train_file_dataset = BertToEmoFileDataset(dataset_root_dir, window_size, min_output)
+    dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/split_{}/val/".format(window_size, batch_size)
+    val_file_dataset = BertToEmoFileDataset(dataset_root_dir, window_size, min_output)
+    dataset_root_dir = "/workspace/dataset/data_src/BERT_to_emotion/window_size_{}/split_{}/test/".format(window_size, batch_size)
+    test_file_dataset = BertToEmoFileDataset(dataset_root_dir, window_size, min_output)
 else:
-    dataset_root_dir = "/workspace/dataset/data_src/embed_to_emotion/window_size_{}/min_{}/split_{}/train/".format(window_size, min_output, batch_size)
-    train_file_dataset = BertToEmoFileDataset(dataset_root_dir)
-    dataset_root_dir = "/workspace/dataset/data_src/embed_to_emotion/window_size_{}/min_{}/split_{}/val/".format(window_size, min_output, batch_size)
-    val_file_dataset = BertToEmoFileDataset(dataset_root_dir)
-    dataset_root_dir = "/workspace/dataset/data_src/embed_to_emotion/window_size_{}/min_{}/split_{}/test/".format(window_size, min_output, batch_size)
-    test_file_dataset = BertToEmoFileDataset(dataset_root_dir)
+    dataset_root_dir = "/workspace/dataset/data_src/embed_to_emotion/window_size_{}/split_{}/train/".format(window_size, batch_size)
+    train_file_dataset = BertToEmoFileDataset(dataset_root_dir, window_size, min_output)
+    dataset_root_dir = "/workspace/dataset/data_src/embed_to_emotion/window_size_{}/split_{}/val/".format(window_size, batch_size)
+    val_file_dataset = BertToEmoFileDataset(dataset_root_dir, window_size, min_output)
+    dataset_root_dir = "/workspace/dataset/data_src/embed_to_emotion/window_size_{}/split_{}/test/".format(window_size, batch_size)
+    test_file_dataset = BertToEmoFileDataset(dataset_root_dir, window_size, min_output)
 
 # %%
 # Pickle化したデータセットを読み込み
@@ -49,10 +48,10 @@ else:
 max_epoch = 10000
 
 # 設定
-num_workers = 24
+num_workers = 12
 date = str(datetime.datetime.today().date())
-description = "512_400dim_MSE_window_3_weight_relu"
-model_path = "/workspace/dataset/data/model/{}_{}_{}.pth".format(BERT, date, description)
+description = "512_400dim_MSE_window_{}_min_{}_relu".format(window_size, min_output)
+model_path = "/workspace/dataset/data/model/kansei_kougakukai/{}.pth".format(description)
 print(model_path)
 # slack通知の設定
 url = "https://hooks.slack.com/services/"
@@ -68,7 +67,6 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
 
-        self.bn = nn.BatchNorm1d(400)
         self.fc1 = nn.Linear(768, 400)
         self.fc2 = nn.Linear(400, 10)
 
@@ -124,7 +122,9 @@ for epoch in range(max_epoch):
     print("epoch:", epoch)
     logging.info("epoch: {}".format(epoch))
     loss_list = []
+    data_list = []
     for batch in tqdm(train_file_loader):
+        # print(batch)
         x, t = batch
         x = x.squeeze()
         t = t.squeeze()
